@@ -96,7 +96,16 @@ local function runSession(targetId)
         end
     end
 
-    parallel.waitForAny(renderLoop, inputLoop)
+    -- Keeps the agent's staleness watchdog from kicking us for being idle
+    -- (no keypresses) even though the session is still genuinely alive.
+    local function heartbeatLoop()
+        while running do
+            rednet.send(targetId, { type = "ping" }, PROTOCOL)
+            sleep(5)
+        end
+    end
+
+    parallel.waitForAny(renderLoop, inputLoop, heartbeatLoop)
 
     rednet.send(targetId, { type = "disconnect" }, PROTOCOL)
     term.clear()

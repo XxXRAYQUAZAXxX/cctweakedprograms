@@ -4,15 +4,14 @@
 --
 -- Runs entirely under agent_lib's background service, so this computer
 -- stays discoverable/connectable via remote_controller the whole time --
--- whether you're sitting at the menu, running the sniffer, or even acting
--- as a controller yourself. The instant a controller session here ends,
--- it's immediately visible/connectable again (the announce loop never stops).
+-- whether you're sitting at the menu or even acting as a controller
+-- yourself. The instant a controller session here ends, it's immediately
+-- visible/connectable again (the announce loop never stops).
 
 local agentLib = require("agent_lib")
 
 local programs = {
     { name = "Remote Controller", cmd = "remote_controller", color = colors.cyan },
-    { name = "Rednet Sniffer",    cmd = "rednet_sniffer",    color = colors.lime },
     { name = "Shell",             cmd = "shell",             color = colors.lightGray },
 }
 

@@ -44,13 +44,19 @@ end
 -- does. Only one controller can be attached at a time; disconnecting
 -- (gracefully or via the controller's Ctrl+T) makes this immediately
 -- visible/connectable again, since the announce loop never stops running.
+-- How long a connected controller can go silent (no input, no heartbeat)
+-- before we assume it vanished (crashed, disconnected without notice, etc.)
+-- and free ourselves up to be connected to again.
+local STALE_TIMEOUT = 20
+
 local function serve(foreground, label)
     openModem()
     label = label or (os.getComputerLabel() or ("Computer " .. os.getComputerID()))
 
     local connectedController = nil
+    local lastSeen = nil
 
-    local function announceLoop()
+    local function messageLoop()
         while true do
             local sender, msg = rednet.receive(PROTOCOL)
             if type(msg) == "table" then
@@ -61,13 +67,31 @@ local function serve(foreground, label)
                     }, PROTOCOL)
                 elseif msg.type == "connect" and not connectedController then
                     connectedController = sender
+                    lastSeen = os.clock()
                     local w, h = term.getSize()
                     rednet.send(sender, { type = "connected", w = w, h = h }, PROTOCOL)
-                elseif msg.type == "event" and sender == connectedController then
-                    os.queueEvent(table.unpack(msg.event))
-                elseif msg.type == "disconnect" and sender == connectedController then
-                    connectedController = nil
+                elseif sender == connectedController then
+                    lastSeen = os.clock()
+                    if msg.type == "event" then
+                        os.queueEvent(table.unpack(msg.event))
+                    elseif msg.type == "disconnect" then
+                        connectedController = nil
+                    end
+                    -- "ping" (or any other message type) just refreshes
+                    -- lastSeen above; no other action needed.
                 end
+            end
+        end
+    end
+
+    -- Catches the case a graceful disconnect message never arrives at all
+    -- (controller crashed, player logged out mid-session, etc.) so we don't
+    -- stay stuck "busy" forever.
+    local function watchdog()
+        while true do
+            sleep(5)
+            if connectedController and lastSeen and (os.clock() - lastSeen) > STALE_TIMEOUT then
+                connectedController = nil
             end
         end
     end
@@ -80,7 +104,7 @@ local function serve(foreground, label)
     end)
     term.redirect(proxy)
 
-    local ok, err = pcall(parallel.waitForAny, announceLoop, foreground)
+    local ok, err = pcall(parallel.waitForAny, messageLoop, watchdog, foreground)
 
     term.redirect(oldTerm)
     if not ok then error(err, 0) end

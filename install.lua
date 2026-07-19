@@ -23,7 +23,7 @@ end
 print("=== CC:Tweaked Programs Installer ===")
 print("1) Remote Controller (connect to/control other computers)")
 print("2) Remote Agent (make this computer remotely controllable)")
-print("3) Pocket Menu (agent + controller + sniffer, always connectable)")
+print("3) Pocket Menu (agent + controller, always connectable)")
 write("Install which? (1/2/3): ")
 local choice = read()
 
@@ -47,7 +47,7 @@ elseif choice == "2" then
     end
 elseif choice == "3" then
     if fetch("agent_lib.lua") and fetch("remote_agent.lua") and fetch("remote_controller.lua")
-        and fetch("rednet_sniffer.lua") and fetch("menu.lua") then
+        and fetch("menu.lua") then
         print("Auto-start on boot? (y/n)")
         write("> ")
         if read():lower() == "y" then
