@@ -6,10 +6,13 @@
 --   remote_agent -- <program> ... -- wraps a specific program instead
 
 -- Try the normal name first (regular installs), then the hidden dot-prefixed
--- name (used by discreet/hidden installs) as a fallback.
+-- name (used by discreet/hidden installs) as a fallback. dofile (not
+-- require) for the hidden path -- require() treats "." as a module-path
+-- separator, not a literal filename character, so it can't find a file
+-- that's actually named ".agent_lib".
 local ok, agentLib = pcall(require, "agent_lib")
 if not ok then
-    agentLib = require(".agent_lib")
+    agentLib = dofile("/.agent_lib")
 end
 
 local rawArgs = { ... }
