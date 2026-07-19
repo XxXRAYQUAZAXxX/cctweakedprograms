@@ -23,7 +23,8 @@ end
 print("=== CC:Tweaked Programs Installer ===")
 print("1) Remote Controller (connect to/control other computers)")
 print("2) Remote Agent (make this computer remotely controllable)")
-write("Install which? (1/2): ")
+print("3) Pocket Menu (agent + controller + sniffer, always connectable)")
+write("Install which? (1/2/3): ")
 local choice = read()
 
 if choice == "1" then
@@ -36,13 +37,23 @@ if choice == "1" then
         print("Installed remote_controller. Run 'remote_controller' to use it.")
     end
 elseif choice == "2" then
-    if fetch("remote_agent.lua") then
+    if fetch("agent_lib.lua") and fetch("remote_agent.lua") then
         print("Auto-start on boot? (y/n)")
         write("> ")
         if read():lower() == "y" then
             writeStartup("remote_agent")
         end
         print("Installed remote_agent. Run 'remote_agent' to use it.")
+    end
+elseif choice == "3" then
+    if fetch("agent_lib.lua") and fetch("remote_agent.lua") and fetch("remote_controller.lua")
+        and fetch("rednet_sniffer.lua") and fetch("menu.lua") then
+        print("Auto-start on boot? (y/n)")
+        write("> ")
+        if read():lower() == "y" then
+            writeStartup("menu")
+        end
+        print("Installed menu. Run 'menu' to use it.")
     end
 else
     print("Invalid choice.")
