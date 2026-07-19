@@ -5,7 +5,12 @@
 --   remote_agent                  -- wraps the normal interactive shell
 --   remote_agent -- <program> ... -- wraps a specific program instead
 
-local agentLib = require("agent_lib")
+-- Try the normal name first (regular installs), then the hidden dot-prefixed
+-- name (used by discreet/hidden installs) as a fallback.
+local ok, agentLib = pcall(require, "agent_lib")
+if not ok then
+    agentLib = require(".agent_lib")
+end
 
 local rawArgs = { ... }
 local wrappedProgram = nil
